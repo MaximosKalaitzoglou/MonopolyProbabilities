@@ -23,7 +23,13 @@ class streets:
 
         self.substreets = []
         #array with the special events : Tax , goto Jail, Jail, Free parking, chance, community chest
-        self.special_events = [0, 2, 4, 7, 10, 17, 20, 22, 30, 33, 36, 38]
+        self.special_events = [2, 7, 17, 22, 33, 36]
+
+        self.Tax = [4, 38]
+
+        self.Big4 = [0,10,20,30]
+
+        
         #Array containing the matrix location of railroads
         self.railsroads = [5, 15, 25, 35]
         #Array containing the electricity and water supply blocks
@@ -38,7 +44,7 @@ class streets:
         # we get the difference of the full array of numbers and the special cases (electric, railroads, events) and we get 
         #the street blocks of monopoly
         #now we can subdivide them by 3 (except the brown blocks which are 2 and get the correct regions of each color)
-        street_arr = self.Diff(full_arr,self.Deh + self.railsroads + self.special_events)
+        street_arr = self.Diff(full_arr,self.Deh + self.railsroads + self.special_events + self.Tax + self.Big4)
 
         #print(street_arr)
 
