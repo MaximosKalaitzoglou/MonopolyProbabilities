@@ -14,6 +14,6 @@
   </h2>
   <p>
     I am thinking of adding a simulator with stats for each block (interactable phone app)<br>
-    As well as extras such as: <ul><li> money managment</li> <li> machine learning predictions based on your position, ownings etc (will the machine seal your fate)</li>
+    As well as extras such as: <ul><li> money managment</li> <li> machine learning predictions based on your position, ownings etc (will the machine seal your fate ?!)</li>
   </p>
  </h1>
