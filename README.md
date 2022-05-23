@@ -17,3 +17,7 @@
     As well as extras such as: <ul><li> money managment</li> <li> machine learning predictions based on your position, ownings etc (will the machine seal your fate ?!)</li>
   </p>
  </h1>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0e8ed8c4ad02e2632d6e24479b2456a0173501b0
