@@ -5,7 +5,7 @@
     Are you tired of losing to your younger siblings :smiling_imp: and your closest friends :anger:,
     Do not worry!!<br> :robot: With this "calculator" you will be able to see the probabilities of
     landing on each street.<br> But wait that means.....:bomb: <br> Yes you will know in full detail <bold>which color blocks</bold> are the
-    mathematically correct ones to choose in order to <bold>maximize your probability of winning</bold>!! :exploding_head:
+    mathematically correct ones to choose in order to *maximize your probability of winning*!! :exploding_head:
     
   </p>
   
