@@ -1,6 +1,7 @@
 from asyncio.windows_events import NULL
 from math import floor
 import numpy as np
+from collections import deque
 
 #all possible dice combinations (rolls)
 dice_combinations = [[1,1], [1,2], [1,3], [1,4], [1,5], [1,6],
@@ -23,7 +24,8 @@ class streets:
 
         self.substreets = []
         #array with the special events : Tax , goto Jail, Jail, Free parking, chance, community chest
-        self.special_events = [2, 7, 17, 22, 33, 36]
+        self.chance = [7, 22, 36]
+        self.community_chest = [22, 17, 33]
 
         self.Tax = [4, 38]
 
@@ -44,7 +46,7 @@ class streets:
         # we get the difference of the full array of numbers and the special cases (electric, railroads, events) and we get 
         #the street blocks of monopoly
         #now we can subdivide them by 3 (except the brown blocks which are 2 and get the correct regions of each color)
-        street_arr = self.Diff(full_arr,self.Deh + self.railsroads + self.special_events + self.Tax + self.Big4)
+        street_arr = self.Diff(full_arr,self.Deh + self.railsroads + self.chance + self.community_chest + self.Tax + self.Big4)
 
         #print(street_arr)
 
@@ -74,8 +76,10 @@ class streets:
 
 class monopoly:
     def __init__(self) -> None:
-        self.monopoly_transition_matrix = [[0] * 12] * 40
+        self.monopoly_transition_matrix = np.zeros(shape=(40,40))
         self.current_position = 'start'
+        self.hood = streets()
+
 
 
     def find_dice_probabilities(self):
@@ -92,15 +96,110 @@ class monopoly:
 
                     numberCount[num] += 1
         
-        print(numberCount)
+        #print(numberCount)
         n = 1/36
         number_probabilities = [round(x * n,2) for x in numberCount]
         return number_probabilities
     
 
+    def setup_transition_matrix(self):
+        #set markov probability transition matrix based on probabilities of dice rolls
+        #only for street blocks
+        #we need to add also special event blocks
+
+        transition_prob = self.find_dice_probabilities()
+        
+        #print(transition_prob)
+        for j in range(0,12):
+            self.monopoly_transition_matrix[0][j] = transition_prob[j]
+        
+        temp = self.monopoly_transition_matrix[0]
+        
+
+        for i in range(1,40):
+            if  i != 30 and i != 10:
+
+                self.monopoly_transition_matrix[i] = np.roll(temp,i)
+            else:
+                if i == 30:
+                    #if go to jail block is visited you can only go to jail
+                    self.monopoly_transition_matrix[i][10] = 1.0
+                
+        #chance square 
+        self.chance_square_probs()
+        #Community chest square  
+        self.community_chest_probs()
+        
+
+         
+
+        np.savetxt("foo.csv",self.monopoly_transition_matrix, fmt = '%.2f')
+        
             
+    def distance_nearest(self,i,to):
+        nearest = 90
+        near_pos = -1
+        for r in to:
+            if abs(r - i) < nearest:
+                nearest = abs(r-i)
+                near_pos = r
+            #if i == 22:
+            #    print("i = 22 , railroad = %d , (r-i) = %d, nearest rail = %d " % (r,nearest,near_pos))
+        #print(nearest)
+        return near_pos   
+        #print(self.monopoly_transition_matrix)
+
+    def chance_square_probs(self):
+        #chance and community chest squares
+        for i in self.hood.chance:
+            for j in range(i-12,i-2):
+                p = self.monopoly_transition_matrix[j][i]
+                #Reading railroad
+                self.monopoly_transition_matrix[j][5] += (1/16) * p
+                #illinois square
+                self.monopoly_transition_matrix[j][24] += (1/16)*p
+                #Charles place
+                self.monopoly_transition_matrix[j][11] += (1/16)*p 
+                #broadwalk
+                self.monopoly_transition_matrix[j][39] += (1/16)*p
+                #Jail
+                self.monopoly_transition_matrix[j][10] += (1/16)*p
+                #Go
+                self.monopoly_transition_matrix[j][0] += (1/16)*p
+                #Go back three spaces
+                self.monopoly_transition_matrix[j][j-3] += (1/16)*p 
+                #Nearest railroad
+                #print(i)
+                nearest = self.distance_nearest(i,self.hood.railsroads)
+                
+                self.monopoly_transition_matrix[j][nearest] += (2/16)*p     
+                #Nearest utility
+                nearest = self.distance_nearest(i,self.hood.Deh)
+                self.monopoly_transition_matrix[j][nearest] += (1/16)*p
 
 
+    def community_chest_probs(self):
+       for c in self.hood.community_chest:
+            for j in range(c-12,c-2):
+                p = self.monopoly_transition_matrix[j][c]      
+                #Go to jail
+                self.monopoly_transition_matrix[j][10] += (1/16)*p
+                #go to start
+                self.monopoly_transition_matrix[j][0] += (1/16)*p
+        
+                
+
+    def markov_chains(self):
+        pass     
+
+
+    def check_sum_of_rows(self):
+        count = 0
+        for row in self.monopoly_transition_matrix:
+            
+            prob_sum = sum(row)
+            print("Probability sum of row : %d = %d"%(count,prob_sum))
+            count += 1
 
 
 
@@ -108,11 +207,17 @@ class monopoly:
 if __name__ == '__main__':
     print('hello')
     #monopoly object
+    mynopoly = monopoly()
+    mynopoly.setup_transition_matrix()
 
+    #probabilities need to add up to 1 if not we made an error
+    #mynopoly.check_sum_of_rows()
 
     #streets object
-    hood = streets()
-    hood.initSubstreets()
+    #hood = streets()
+    #hood.initSubstreets()
+
+    
     
 
 
