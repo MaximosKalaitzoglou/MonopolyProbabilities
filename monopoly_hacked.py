@@ -1,7 +1,12 @@
 from asyncio.windows_events import NULL
-from math import floor
+import pandas as pd
+from re import X
 import numpy as np
 from collections import deque
+import csv
+
+from scipy.linalg import eig
+
 
 #all possible dice combinations (rolls)
 dice_combinations = [[1,1], [1,2], [1,3], [1,4], [1,5], [1,6],
@@ -31,11 +36,16 @@ class streets:
 
         self.Big4 = [0,10,20,30]
 
+        self.square_names = ["Go","Mediterranean Avenue","Community Chest","Baltic Avenue","Income Tax","Reading Railroad","Oriental Avenue",
+                            "Chance","Vermont Avenue","Connecticut Avenue","Jail / Just Visiting","St. Charles Place","Electric Company","States Avenue","Virginia Avenue","Pennsylvania Railroad",
+                            "St. James Place","Community Chest","Tennessee Avenue","New York Avenue","Free Parking","Kentucky Avenue","Chance","Indiana Avenue","Illinois Avenue","B. & O. Railroad",
+                            "Atlantic Avenue","Ventnor Avenue","Water Works","Marvin Gardens","Go To Jail","Pacific Avenue","North Carolina Avenue","Community Chest","Pennsylvania Avenue",
+                            "Short Line","Chance","Park Place","Luxury Tax","Boardwalk"]
         
         #Array containing the matrix location of railroads
         self.railsroads = [5, 15, 25, 35]
         #Array containing the electricity and water supply blocks
-        self.Deh = [12, 28]
+        self.Deh = [12, 28,200]
         #regions of color blocks
         self.regions = []
     
@@ -74,11 +84,11 @@ class streets:
         return list(set(li1) - set(li2)) + list(set(li2) - set(li1))
 
 
-class monopoly:
+class markov_chains:
     def __init__(self) -> None:
         self.monopoly_transition_matrix = np.zeros(shape=(40,40))
         self.current_position = 'start'
-        self.hood = streets()
+        self.new_street = streets()
 
 
 
@@ -124,16 +134,23 @@ class monopoly:
                 if i == 30:
                     #if go to jail block is visited you can only go to jail
                     self.monopoly_transition_matrix[i][10] = 1.0
-                
+        
+        
+        #
+        self.when_in_Jail()
+
         #chance square 
         self.chance_square_probs()
         #Community chest square  
         self.community_chest_probs()
+        #rolling 3 doubles prob
+        self.roll_3_doubles()
+
+        #self.check_sum_of_rows()
+
         
 
-         
-
-        np.savetxt("foo.csv",self.monopoly_transition_matrix, fmt = '%.2f')
+        np.savetxt("transition_matrixDoubles.csv",self.monopoly_transition_matrix, fmt = '%.5f')
         
             
     def distance_nearest(self,i,to):
@@ -143,16 +160,18 @@ class monopoly:
             if abs(r - i) < nearest:
                 nearest = abs(r-i)
                 near_pos = r
-            #if i == 22:
-            #    print("i = 22 , railroad = %d , (r-i) = %d, nearest rail = %d " % (r,nearest,near_pos))
-        #print(nearest)
+            #if r == 12 or r == 28:
+                #print("i = 22 , railroad = %d , (r-i) = %d" % (r,near_pos))
+            
+        #print(near_pos)
         return near_pos   
         #print(self.monopoly_transition_matrix)
+    
 
     def chance_square_probs(self):
         #chance and community chest squares
-        for i in self.hood.chance:
-            for j in range(i-12,i-2):
+        for i in self.new_street.chance:
+            for j in range(i-12,i):
                 p = self.monopoly_transition_matrix[j][i]
                 #Reading railroad
                 self.monopoly_transition_matrix[j][5] += (1/16) * p
@@ -167,30 +186,62 @@ class monopoly:
                 #Go
                 self.monopoly_transition_matrix[j][0] += (1/16)*p
                 #Go back three spaces
-                self.monopoly_transition_matrix[j][j-3] += (1/16)*p 
+                self.monopoly_transition_matrix[j][i-3] += (1/16)*p 
                 #Nearest railroad
                 #print(i)
-                nearest = self.distance_nearest(i,self.hood.railsroads)
+                nearest = self.distance_nearest(i,self.new_street.railsroads)
                 
                 self.monopoly_transition_matrix[j][nearest] += (2/16)*p     
                 #Nearest utility
-                nearest = self.distance_nearest(i,self.hood.Deh)
+                nearest = self.distance_nearest(i,self.new_street.Deh)
                 self.monopoly_transition_matrix[j][nearest] += (1/16)*p
 
 
     def community_chest_probs(self):
-       for c in self.hood.community_chest:
+       for c in self.new_street.community_chest:
             for j in range(c-12,c-2):
                 p = self.monopoly_transition_matrix[j][c]      
                 #Go to jail
                 self.monopoly_transition_matrix[j][10] += (1/16)*p
                 #go to start
                 self.monopoly_transition_matrix[j][0] += (1/16)*p
-        
                 
 
-    def markov_chains(self):
-        pass     
+   
+    def most_likely_to_visit(self,stationary):
+        m = {}
+        for i in range(0,40):
+            m[self.new_street.square_names[i]] = stationary[i]
+        m = dict(sorted(m.items(), key = lambda item: item[1], reverse=True))
+        print(m)
+        self.export_to_csv(m)
+        
+    def export_to_csv(self,m):
+        csv_columns = ['Square Name', 'Probability of visiting']
+        csv_file = 'most_likely_to_visit.xlsx'
+        df = pd.DataFrame(m.items(), columns=["Square Name", "Probability of Visiting"]) 
+        df.to_excel(csv_file)
+
+
+    
+    def stationary_distribution(self):
+        #left eigen vectors close to 1 for the transition matrix
+        #so that we can get the stationary distribution also known by the equations
+        # w * P = w 
+
+        v = eig(self.monopoly_transition_matrix,left=True,right=False)[1][:,0]
+        
+        # normalize v 
+        stationary = v / v.sum()
+        
+        #eigs finds complex eigenvalues and eigenvectors, so you'll want the real part.
+        stationary = stationary.real
+        np.savetxt("stationary_distribution.csv",stationary, fmt = '%.5f')
+        self.most_likely_to_visit(stationary)
+        #print(stationary)
+        
+        
+        
 
 
     def check_sum_of_rows(self):
@@ -201,21 +252,50 @@ class monopoly:
             print("Probability sum of row : %d = %d"%(count,prob_sum))
             count += 1
 
+    def roll_3_doubles(self):
+        #rolling 3 doubles has a probability of (1/6) ^ 3 (we have 6 possible double outcomes)
+        #so the probability of going to jail at any given time is 1/216 (from any block)
+        #we need to add this probability to our transition matrix P
+        # this though will mess up the sum of the rows making them greater or lower than 1 we can;t have that
+        # So its a simple equation to figure out how to overcome this 
+        # We know that sum(row) for row in transition_matrix = 1 so now we have:
+        # x (sum of rows) = 1 => x = 1/sum of rows
+        for row in self.monopoly_transition_matrix:
+            row[10] = row[10] + 1/216
+            sumOfRow = sum(row)
+            e = 1/sumOfRow
+            row = [x * e for x in row]
+        #self.check_sum_of_rows()
+    
+    def when_in_Jail(self):
+        #when you are in jail you can only get out after 3 rounds 
+        #or when you roll a double
+        # we have 6 doubles that sum to the numbers -> 2, 4, 6, 8, 10, 12
+        #so let's fix our jail square each of the doubles has a prob of occuring 1/6
+        # also we can roll 3 doubles so we can end up on the jail square again
+        
 
+        for i in range(12,22,2):
+            self.monopoly_transition_matrix[10][i] += 1/6
+        self.monopoly_transition_matrix[10][10] += 1/216
+        self.monopoly_transition_matrix[10][22] += 1/6
+        
 
 
 if __name__ == '__main__':
     print('hello')
     #monopoly object
-    mynopoly = monopoly()
+    mynopoly = markov_chains()
     mynopoly.setup_transition_matrix()
-
+    mynopoly.stationary_distribution()
+    #h = streets()
+    #print(h.square_names)
     #probabilities need to add up to 1 if not we made an error
     #mynopoly.check_sum_of_rows()
 
     #streets object
-    #hood = streets()
-    #hood.initSubstreets()
+    #new_street = streets()
+    #new_street.initSubstreets()
 
     
     
