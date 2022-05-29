@@ -17,9 +17,7 @@
     <li>
      money managment
     </li>
-    <li>
-     machine learning predictions based on your position, ownings etc (will the machine seal your fate ?!)
-    </li>
+    
   </p>
 
 
