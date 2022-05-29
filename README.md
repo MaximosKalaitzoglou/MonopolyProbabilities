@@ -17,6 +17,10 @@
     <li>
      money managment
     </li>
+    <li>
+      based on how much money you have and what squares you own(as well as if you have houses/hotels)
+      and what your competitors own, how much likely is it for you to win
+    </li>
     
   </p>
 
