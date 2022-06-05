@@ -10,7 +10,7 @@
   </p>
 
   <p> Finished probability calculation for each square on the board!!<br> Here is the table <br>
-  <table>
+   <table style="width:100px; border: 1px solid black">
     <tr>
         <td>Number</td>
         <td>Square Name</td>
