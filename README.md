@@ -8,6 +8,10 @@
     mathematically correct ones to choose in order to maximize your probability of winning!! :exploding_head:
     
   </p>
+
+  <p> Finished probability calculation for each square on the board!!<br> Here is the table <br>
+  <img src = "./most_visited.png" width = 400 height = 300>
+
   
   <h2>
     Adding more than just probabilities

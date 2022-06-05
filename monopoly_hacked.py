@@ -3,8 +3,8 @@ import pandas as pd
 from re import X
 import numpy as np
 from collections import deque
-import csv
-
+import matplotlib.pyplot as plt
+ 
 from scipy.linalg import eig
 
 
@@ -218,9 +218,9 @@ class markov_chains:
         
     def export_to_csv(self,m):
         csv_columns = ['Square Name', 'Probability of visiting']
-        csv_file = 'most_likely_to_visit.xlsx'
+        csv_file = 'most_likely_to_visit.csv'
         df = pd.DataFrame(m.items(), columns=["Square Name", "Probability of Visiting"]) 
-        df.to_excel(csv_file)
+        df.to_csv(csv_file)
 
 
     
@@ -285,9 +285,23 @@ class markov_chains:
 if __name__ == '__main__':
     print('hello')
     #monopoly object
-    mynopoly = markov_chains()
-    mynopoly.setup_transition_matrix()
-    mynopoly.stationary_distribution()
+    #mynopoly = markov_chains()
+    #mynopoly.setup_transition_matrix()
+    #mynopoly.stationary_distribution()
+    my_data = pd.read_csv('most_likely_to_visit.csv')
+    print(my_data.head(10))
+    
+    plt.hist(my_data['Square Name','Probability of Visiting'], color ='blue', edgecolor= 'black', bins = int(180/5))
+    plt.show()
+
+
+
+
+
+
+
+
+
     #h = streets()
     #print(h.square_names)
     #probabilities need to add up to 1 if not we made an error
