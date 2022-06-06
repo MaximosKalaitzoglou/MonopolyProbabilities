@@ -36,11 +36,11 @@ class streets:
 
         self.Big4 = [0,10,20,30]
 
-        self.square_names = ["Go","Mediterranean Avenue","Community Chest","Baltic Avenue","Income Tax","Reading Railroad","Oriental Avenue",
-                            "Chance","Vermont Avenue","Connecticut Avenue","Jail / Just Visiting","St. Charles Place","Electric Company","States Avenue","Virginia Avenue","Pennsylvania Railroad",
-                            "St. James Place","Community Chest","Tennessee Avenue","New York Avenue","Free Parking","Kentucky Avenue","Chance","Indiana Avenue","Illinois Avenue","B. & O. Railroad",
-                            "Atlantic Avenue","Ventnor Avenue","Water Works","Marvin Gardens","Go To Jail","Pacific Avenue","North Carolina Avenue","Community Chest","Pennsylvania Avenue",
-                            "Short Line","Chance","Park Place","Luxury Tax","Boardwalk"]
+        self.square_names = ["Go","Mediterranean Avenue","Community Chest1","Baltic Avenue","Income Tax","Reading Railroad","Oriental Avenue",
+                            "Chance1","Vermont Avenue","Connecticut Avenue","Jail / Just Visiting","St. Charles Place","Electric Company","States Avenue","Virginia Avenue","Pennsylvania Railroad",
+                            "St. James Place","Community Chest2","Tennessee Avenue","New York Avenue","Free Parking","Kentucky Avenue","Chance2","Indiana Avenue","Illinois Avenue","B. & O. Railroad",
+                            "Atlantic Avenue","Ventnor Avenue","Water Works","Marvin Gardens","Go To Jail","Pacific Avenue","North Carolina Avenue","Community Chest3","Pennsylvania Avenue",
+                            "Short Line","Chance3","Park Place","Luxury Tax","Boardwalk"]
         
         #Array containing the matrix location of railroads
         self.railsroads = [5, 15, 25, 35]
@@ -214,7 +214,7 @@ class markov_chains:
             m[self.new_street.square_names[i]] = stationary[i]
         m = dict(sorted(m.items(), key = lambda item: item[1], reverse=True))
         print(m)
-        self.export_to_csv(m)
+        self.export_to_xlsx(m)
         
     def export_to_csv(self,m):
         csv_columns = ['Square Name', 'Probability of visiting']
@@ -222,7 +222,10 @@ class markov_chains:
         df = pd.DataFrame(m.items(), columns=["Square Name", "Probability of Visiting"]) 
         df.to_csv(csv_file)
 
-
+    def export_to_xlsx(self,m):
+        xl_file = 'most_likely_to_visit.xlsx'
+        df = pd.DataFrame(m.items(), columns=["Square Name", "Probability of Visiting"])
+        df.to_excel(xl_file); 
     
     def stationary_distribution(self):
         #left eigen vectors close to 1 for the transition matrix
@@ -285,14 +288,14 @@ class markov_chains:
 if __name__ == '__main__':
     print('hello')
     #monopoly object
-    #mynopoly = markov_chains()
-    #mynopoly.setup_transition_matrix()
-    #mynopoly.stationary_distribution()
-    my_data = pd.read_csv('most_likely_to_visit.csv')
-    print(my_data.head(10))
+    mynopoly = markov_chains()
+    mynopoly.setup_transition_matrix()
+    mynopoly.stationary_distribution()
+    #my_data = pd.read_csv('most_likely_to_visit.csv')
+    #print(my_data.head(10))
     
-    plt.hist(my_data['Square Name','Probability of Visiting'], color ='blue', edgecolor= 'black', bins = int(180/5))
-    plt.show()
+    #plt.hist(my_data['Square Name','Probability of Visiting'], color ='blue', edgecolor= 'black', bins = int(180/5))
+    #plt.show()
 
 
 
